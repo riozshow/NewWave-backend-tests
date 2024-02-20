@@ -1,3 +1,5 @@
+const sanitize = require('mongo-sanitize');
+
 module.exports = function (router, Model, controlers = {}) {
   const pathName = Model.modelName + 's';
 
@@ -36,6 +38,11 @@ module.exports = function (router, Model, controlers = {}) {
     if (controlers.add) {
       return controlers.add(req, res);
     }
+
+    for (const key in req.body) {
+      req.body[key] = sanitize(req.body[key]);
+    }
+
     Model.create({ ...req.body })
       .then(() => res.json({ message: 'OK' }))
       .catch((err) => res.status(500).json({ message: err._message }));
@@ -45,6 +52,11 @@ module.exports = function (router, Model, controlers = {}) {
     if (controlers.modify) {
       return controlers.modify(req, res);
     }
+
+    for (const key in req.body) {
+      req.body[key] = sanitize(req.body[key]);
+    }
+
     Model.findById(req.params.id)
       .then((data) => data.overwrite(req.body))
       .then((data) => data.save())
